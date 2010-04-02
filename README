@@ -1,0 +1,7 @@
+Author: Florent Jaby
+Date: vendredi 2 avril 2010, 17:00:52 (UTC+0200)
+
+Compile instructions:
+    - you need to have the Apache development headers installed
+    - you need to have the Xerces XML Parser (C++) development headers installed and a library compiled and installed
+
