@@ -23,8 +23,13 @@
 
 #include	<string>
 #include	"PurpleModule.hpp"
+#include	"ModuleManager.hpp"
+#include	"Exceptions.hpp"
 
 extern "C" module AP_MODULE_DECLARE_DATA purple_module; // C-style external symbol
+namespace purple {
+    ModuleManager module_manager;
+};
 purple::PurpleModule PurpleInstance;
 
 /*
@@ -35,8 +40,18 @@ static int mod_purple_method_handler(request_rec* r) {
     fflush(stderr);
     if(std::string("purple") == r->handler) {
 	r->content_type = "text/plain";
-	PurpleInstance.process(r);
-	ap_rprintf(r, "Kikoo =)\n");
+	try {
+	    PurpleInstance.process(r);
+	}
+	catch(const char* error) {
+	    return 500;
+	}
+	catch (const purple::FileNotFound& e) {
+	    return 404;
+	}
+	catch(const std::exception& e) {
+	    return 500;
+	}
 	return OK;
     }
     return DECLINED; //we don't process this request

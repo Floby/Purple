@@ -16,8 +16,16 @@ all: $(SONAME)
 $(SONAME): $(OBJ)
 	g++ -fPIC -shared -o $@ $^ $(APXS_LIBS_SHLIB) $(LD_FLAGS)
 
+include dependencies.mk
+
+%cpp: %hpp
+	@echo $? is more recent than $@
+	@touch $@
+
+
 %o : %cpp
-	g++ -c -fPIC -I$(APXS_INCLUDEDIR) -I$(V8_INCLUDEDIR) -I. -I- $(APXS_CFLAGS) $(APXS_CFLAGS_SHLIB) -Wall -o $@ $< 
+	g++ -c -fPIC -I$(APXS_INCLUDEDIR) -I$(V8_INCLUDEDIR) -I. -iquote $(APXS_CFLAGS) $(APXS_CFLAGS_SHLIB) -Wall -o $@ $< 
+
 
 # compile the shared object file. use g++ instead of letting apxs call
 # ld so we end up with the right c++ stuff. We do this in two steps,

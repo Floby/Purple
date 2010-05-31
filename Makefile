@@ -3,13 +3,19 @@ include config.mk
 #all: shared-object modules
 all: shared-object 
 
+clean: clean-src
+	rm $(builddir)/$(SONAME);
+
+clean-src:
+	@cd $(srcdir) && $(MAKE) clean
+
 shared-object: $(builddir)/$(SONAME) 
 
 $(builddir)/$(SONAME) : $(srcdir)/$(SONAME)
 	mv $(srcdir)/$(SONAME) $(builddir)/
 
 $(srcdir)/$(SONAME) :
-	cd $(srcdir) && $(MAKE)
+	@cd $(srcdir) && $(MAKE)
 
 public-headers: $(incdir)/$(NAME).h
 
@@ -17,10 +23,10 @@ $(incdir)/$(NAME).h : $(srcdir)/public-header.h
 	cp $(srcdir)/public-header.h $(incdir)/
 
 $(srcdir)/public-header.h:
-	cd $(srcdir) && $(MAKE) public-header.h
+	@cd $(srcdir) && $(MAKE) public-header.h
 
 modules: public-headers
-	cd $(srcdir)/modules && $(MAKE)
+	@cd $(srcdir)/modules && $(MAKE)
 	cp -v $(srcdir)/modules/m_*/*.so $(builddir)/modules/
 
 # install the shared object file into Apache 

@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  RequestProcessor.hpp
+ *       Filename:  ModuleProcessor.hpp
  *
  *    Description:  
  *
  *        Version:  1.0
- *        Created:  25/05/2010 16:09:04
+ *        Created:  30/05/2010 16:14:50
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -16,34 +16,27 @@
  * =====================================================================================
  */
 
-#ifndef REQUESTPROCESSOR_HPP
-#define REQUESTPROCESSOR_HPP
+#ifndef MODULEPROCESSOR_HPP
+#define MODULEPROCESSOR_HPP
 
-#include "httpd.h"
-#include "http_config.h"
-#include "Processor.hpp"
+#include	"Processor.hpp"
 
 namespace purple {
-    class RequestProcessor :public Processor {
+    class ModuleProcessor :public Processor {
 	public:
-	    RequestProcessor(request_rec* r);
-	    virtual ~RequestProcessor();
+	    ModuleProcessor(const std::string& filename);
 
 	protected:
-	    //virtual void createContext();
-	    //virtual void initializeContext();
 	    virtual void initializeGlobalObjectTemplate(v8::Handle<v8::ObjectTemplate>);
 	    virtual void initializeGlobalObject(v8::Handle<v8::Object>);
 	    virtual PScript* getScript();
-	    //virtual void handleExcpetions(v8::Handle<v8::Exception> e);
+	    //virtual void handleExceptions(v8::Handle<v8::Exception> e);
 	    virtual int returnValue(v8::Handle<v8::Value> jsReturnValue);
-	    virtual void clean();
-	private:
-	   request_rec* _request; 
+	    virtual void clean() ;
 
-	   static v8::Handle<v8::Value> printCallback(const v8::Arguments& args);
+	private:
+	    std::string _filename;
     };
 };
 
-#endif /* REQUESTPROCESSOR_HPP */
-
+#endif /* MODULEPROCESSOR_HPP */

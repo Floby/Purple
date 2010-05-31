@@ -19,12 +19,13 @@
 
 #include	"http_protocol.h"
 #include	"PurpleModule.hpp"
+#include	"RequestProcessor.hpp"
 
 using namespace purple;
 
 int PurpleModule::process(request_rec* r) {
-    ap_rprintf(r, "Kikoo =), c'est purple avec le module\n");
-    return OK;
+    RequestProcessor rp(r);
+    return rp.process();
 } /* -----  end of method PurpleModule::process  ----- */
 
 
