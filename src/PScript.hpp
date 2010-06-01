@@ -35,6 +35,7 @@ namespace purple {
 	    v8::Persistent<v8::Script> _script;
 	    bool _compiled;
 	    std::string _src;
+	    std::string _filename;
 	    int _timestamp;
 
 

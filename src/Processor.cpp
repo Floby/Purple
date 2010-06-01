@@ -52,7 +52,7 @@ void Processor::initializeGlobalObjectTemplate(Handle<ObjectTemplate> gt) {
 void Processor::initializeGlobalObject(Handle<Object> g) {
     g->Set(String::New("global"), g);
     Handle<Object> paths = Array::New();
-    paths->Set(0, String::New("/usr/purple/lib/js"));
+    paths->Set(0, String::New("/usr/lib/purple/modules")); //TODO: move this to config
     Handle<Object>::Cast(g->Get(String::New("require")))->Set(String::New("paths"), paths);
 }
 
@@ -81,10 +81,10 @@ int Processor::process() {
     cerr << "initializing global object\n";
     initializeGlobalObject(_context->Global());
     
-    v8::TryCatch try_catch;
     // compile the script
     // execute the script (this doesn't need to be handled by subclasses)
     Handle<Value> jsvalue = script->getJsScript()->Run();
+    v8::TryCatch try_catch;
     // catch exceptions
     if(jsvalue.IsEmpty()) {
 	Handle<Value> exception = try_catch.Exception();
@@ -169,6 +169,7 @@ Handle<Value> Processor::getModule(const string& name) {
     }
     catch(const exception& e) {
 	try {
+	    cerr << "trying " << name << ".so" << endl;
 	    return getSoModule(name+".so");
 	}
 	catch(const exception& e) {

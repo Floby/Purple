@@ -18,3 +18,6 @@ PScript.cpp: PScript.hpp Exceptions.hpp
 
 ModuleProcessor.hpp: Processor.hpp
 	@touch $@
+
+ModuleManager.cpp: ModuleProcessor.hpp Exceptions.hpp BinaryModule.hpp
+	@touch $@

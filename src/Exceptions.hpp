@@ -36,6 +36,20 @@ namespace purple {
 	private:
 	    std::string _filename; 
     };
+
+    class CompilingError :public std::exception {
+	public:
+	    CompilingError(std::string reason) : _reason(reason) {
+	    }
+	    virtual ~CompilingError() throw() {
+	    }
+	    const std::string& reason() {
+		return _reason;
+	    }
+	private:
+	    std::string _reason; 
+    };
+
 };
 
 #endif /* EXEPTIONS_HPP */

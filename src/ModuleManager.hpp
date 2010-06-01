@@ -19,8 +19,6 @@
 #ifndef MODULEMANAGER_HPP
 #define MODULEMANAGER_HPP
 
-#include	<dlfcn.h>
-#include	<cstdio>
 
 #include	<string>
 #include	<list>
@@ -43,6 +41,7 @@ namespace purple {
 	    static envInfo getEnvInformations(v8::Handle<v8::Function> require);
 	
 	    v8::Handle<v8::Value> loadJsModule(std::string path);
+	    v8::Handle<v8::Value> loadSoModule(std::string path);
 	    static std::vector<std::string> listPossiblePaths(v8::Handle<v8::Function> require, std::string name);
     };
     extern ModuleManager module_manager;

@@ -20,9 +20,10 @@ NAME=purple
 SONAME=mod_$(NAME).so
 
 PURPLE_HOME=/home/floby/dev/purple
+PURPLE_MODULES=/usr/lib/purple/modules
 
 homedir=$(PURPLE_HOME)
-builddir=$(homedir)/build
-srcdir=$(homedir)/src
-incdir=$(homedir)/include
+export builddir=$(homedir)/build
+export srcdir=$(homedir)/src
+export incdir=$(homedir)/include
 

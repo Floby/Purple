@@ -17,6 +17,7 @@
  */
 
 
+#include	<iostream>
 #include	<fstream>
 #include	<sstream>
 #include	"PScript.hpp"
@@ -27,7 +28,7 @@ using namespace std;
 using namespace v8;
 
 
-PScript::PScript(string filename) : _compiled(false) {
+PScript::PScript(string filename) : _compiled(false), _filename(filename) {
     _src = readFile(filename);
     _timestamp = 0;  //for now
 }
@@ -55,7 +56,14 @@ Handle<Script> PScript::getJsScript() {
     if(_compiled) return _script;
     HandleScope handle_scope;
     Handle<String> source = String::New(_src.c_str());
+
+    TryCatch try_catch;
     Handle<Script> script = Script::Compile(source);
+    if(try_catch.HasCaught()) {
+	String::Utf8Value error(try_catch.Exception());
+	cerr << "caught " << *error << " when compiling" << endl;
+	throw CompilingError(string("in ") + _filename + ": " + *error);
+    }
     _script = Persistent<Script>::New(script);
     return _script;
 }

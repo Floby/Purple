@@ -7,14 +7,17 @@ include ../config.mk
 
 SRC=$(wildcard *.cpp)
 OBJ=$(SRC:.cpp=.o)
-V8_INCLUDEDIR=/usr/local/include/v8
-LD_FLAGS=-lv8
+export V8_INCLUDEDIR=/usr/local/include/v8
+export LD_FLAGS=-rdynamic -lv8-juice -lv8
+export I_FLAGS=-I$(APXS_INCLUDEDIR) -I$(V8_INCLUDEDIR)
+export C_FLAGS=$(APXS_CFLAGS) $(APXS_CFLAGS_SHLIB)
+export PURPLE_INCLUDEDIR=$(homedir)/include
 
 #   the default target
 all: $(SONAME)
 
 $(SONAME): $(OBJ)
-	g++ -fPIC -shared -o $@ $^ $(APXS_LIBS_SHLIB) $(LD_FLAGS)
+	g++ -fPIC  -shared -o $@ $^ $(APXS_LIBS_SHLIB) $(LD_FLAGS)
 
 include dependencies.mk
 

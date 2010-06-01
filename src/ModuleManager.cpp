@@ -20,7 +20,10 @@
 #include	"ModuleManager.hpp"
 #include	"ModuleProcessor.hpp"
 #include	"Exceptions.hpp"
+#include	"BinaryModule.hpp"
 #include	<iostream>
+#include	<dlfcn.h>
+#include	<cstdio>
 using namespace purple;
 using namespace v8;
 using namespace std;
@@ -58,6 +61,37 @@ Handle<Value> ModuleManager::loadJsModule(string path) {
     return exports;
 }
 
+Handle<Value> ModuleManager::loadSoModule(std::string path) {
+    //HandleScope hs;
+    void* lib_handle;
+    char* error;
+
+    lib_handle = dlopen(path.c_str(), RTLD_NOW); // error if unresolved symbols
+    if(!lib_handle) {
+	cerr << "couldn't load " << path << ": " << dlerror() << endl;
+	throw(FileNotFound(path));
+    }
+    string symname = "";
+    unsigned int slashpos, extpos;
+    slashpos = path.find_last_of('/')+1;
+    extpos = path.rfind(".so");
+    cerr << "position of .so "<< path.rfind(".so")<<endl;
+    symname += "purple_module_" + path.substr(slashpos, extpos - slashpos);
+    cerr << "loading symbol: " << symname << endl;
+    BinaryModule* bm = static_cast<BinaryModule*>(dlsym(lib_handle, symname.c_str()));
+    if((error = dlerror()) != NULL) {
+	cerr << "couldn't get symbol: " << symname << endl;
+	throw(FileNotFound(path));
+    }
+    cerr << "got symbol" << endl;
+    // maybe create a context for the created objects
+    Handle<Object> module = bm->getJsModuleObject();
+    cerr << "got js object " << endl;
+    //if(do_cache) _loaded_modules[path] = Persistent<Object>::New(module);
+    cerr << "returning module" << endl;
+    //return hs.Close(module);
+    return module;
+}
 
 ModuleManager::envInfo ModuleManager::getEnvInformations(Handle<Function> require) {
     HandleScope hs;
@@ -102,23 +136,21 @@ vector<string> ModuleManager::listPossiblePaths(Handle<Function> require, string
     return res;
 }
 
-/*
-Handle<Value> ModuleManager::getSoModule(v8::Handle<v8::Function> require, std::string name) {
-    throw(FileNotFound(name));
-    return Object::New();
-}
-*/
-
 Handle<Value> ModuleManager::getSoModule(v8::Handle<v8::Function> require, std::string name) {
     if(_loaded_modules.find(name) != _loaded_modules.end()) {
 	return _loaded_modules[name];
     }
 
+    //HandleScope hs;
+
     cerr << "ModuleManager::getSoModule(" << name << ")\n";
     vector<string> paths = listPossiblePaths(require, name);
     for(unsigned int i=0 ; i<paths.size() ; ++i) {
 	try {
-	    return loadJsModule(paths[i]); //change to SO
+	    Handle<Value> res = loadSoModule(paths[i]); //change to SO
+	    cerr << "got module (getSoModule)" << endl;
+	    //return hs.Close(res);
+	    return res;
 	} catch(const exception& e) {}
     }
    

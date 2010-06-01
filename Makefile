@@ -1,13 +1,16 @@
 include config.mk
 
 #all: shared-object modules
-all: shared-object 
+all: shared-object  modules
 
-clean: clean-src
+clean: clean-src clean-modules
 	rm $(builddir)/$(SONAME);
 
 clean-src:
 	@cd $(srcdir) && $(MAKE) clean
+
+clean-modules:
+	@cd $(srcdir)/modules && $(MAKE) clean;
 
 shared-object: $(builddir)/$(SONAME) 
 
@@ -27,17 +30,17 @@ $(srcdir)/public-header.h:
 
 modules: public-headers
 	@cd $(srcdir)/modules && $(MAKE)
-	cp -v $(srcdir)/modules/m_*/*.so $(builddir)/modules/
+	cp -v $(srcdir)/modules/*/*.so $(builddir)/modules/
 
 # install the shared object file into Apache 
 #install: install-so install-modules
-install: install-so
+install: install-so install-modules
 
 install-so: shared-object
 	$(APXS) -i -n '$(NAME)' $(builddir)/$(SONAME)
 
 install-modules: modules
-	cp -v $(builddir)/modules/*.so $(PURPLE_MODULES)/bin/
+	cp -v $(builddir)/modules/*.so $(PURPLE_MODULES)
 
 #   install and activate shared object by reloading Apache to
 #   force a reload of the shared object file
