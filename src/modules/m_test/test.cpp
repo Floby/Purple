@@ -42,10 +42,10 @@ namespace purple {
 	cerr << "creating new object" << endl;
 	Persistent<Object> exports = Persistent<Object>::New(Object::New());
 	cerr << "adding new string" << endl;
-	exports->Set(String::New("param"), Boolean::New(true));
-	Handle<FunctionTemplate> systemTemplate = FunctionTemplate::New(systemCallback);
-	exports->Set(String::New("system"), systemTemplate->GetFunction());
-	cerr << "returning value" << endl;
+	//exports->Set(String::New("param"), Boolean::New(true));
+	//Handle<FunctionTemplate> systemTemplate = FunctionTemplate::New(systemCallback);
+	//exports->Set(String::New("system"), systemTemplate->GetFunction());
+	//cerr << "returning value" << endl;
 	return hs.Close(exports);
     }
 

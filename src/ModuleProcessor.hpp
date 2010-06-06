@@ -30,6 +30,7 @@ namespace purple {
 	    virtual void initializeGlobalObjectTemplate(v8::Handle<v8::ObjectTemplate>);
 	    virtual void initializeGlobalObject(v8::Handle<v8::Object>);
 	    virtual PScript* getScript();
+	    virtual std::string getCwd() ;
 	    //virtual void handleExceptions(v8::Handle<v8::Exception> e);
 	    virtual int returnValue(v8::Handle<v8::Value> jsReturnValue);
 	    virtual void clean() ;

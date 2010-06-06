@@ -68,8 +68,12 @@ Handle<Value> ModuleManager::loadSoModule(std::string path) {
 
     lib_handle = dlopen(path.c_str(), RTLD_NOW); // error if unresolved symbols
     if(!lib_handle) {
-	cerr << "couldn't load " << path << ": " << dlerror() << endl;
-	throw(FileNotFound(path));
+	string error = dlerror();
+	cerr << "couldn't load " << path << ": " << error << endl;
+	if(error.find("No such file or directory") != string::npos) {
+	    throw(FileNotFound(path));
+	}
+	throw(ModuleLoadError(path, error));
     }
     string symname = "";
     unsigned int slashpos, extpos;
@@ -81,36 +85,48 @@ Handle<Value> ModuleManager::loadSoModule(std::string path) {
     BinaryModule* bm = static_cast<BinaryModule*>(dlsym(lib_handle, symname.c_str()));
     if((error = dlerror()) != NULL) {
 	cerr << "couldn't get symbol: " << symname << endl;
-	throw(FileNotFound(path));
+	throw(ModuleLoadError(path, dlerror()));
     }
     cerr << "got symbol" << endl;
     // maybe create a context for the created objects
     Handle<Object> module = bm->getJsModuleObject();
+    //Persistent<Object> module = Persistent<Object>::New(Object::New());
     cerr << "got js object " << endl;
     //if(do_cache) _loaded_modules[path] = Persistent<Object>::New(module);
     cerr << "returning module" << endl;
     //return hs.Close(module);
+    return Object::New();
     return module;
 }
 
-ModuleManager::envInfo ModuleManager::getEnvInformations(Handle<Function> require) {
+static vector<string> get_paths(Handle<Function> require) {
     HandleScope hs;
     Handle<Object> paths = Handle<Object>::Cast(require->Get(String::New("paths")));
+    if(!paths->IsArray()) return vector<string>();
+    vector<string> res;
     unsigned int length = paths->Get(String::New("length"))->Uint32Value();
     cerr << "paths.length = " << length << endl;
-    vector<string> res;
     for(unsigned int i=0; i<length ; ++i) {
 	String::Utf8Value v(paths->Get(i));
 	cerr << "found " << *v << " in paths[" << i << "]\n";
 	res.push_back(string(*v));
     }
+    return res;
+}
+
+static string get_env(Handle<Function> require) {
+    HandleScope hs;
     Handle<Object> env = Handle<Object>::Cast(Context::GetCalling()->Global()->Get(String::New("_env")));
+    if(env->IsUndefined()) return "/usr/lib/purple/js";
     String::Utf8Value cwd (env->Get(String::New("cwd")));
     cerr << "found cwd = " << *cwd << endl;
-    envInfo result = make_pair(string(*cwd), res);
+    return string(*cwd);
+}
 
+ModuleManager::envInfo ModuleManager::getEnvInformations(Handle<Function> require) {
+    HandleScope hs;
+    envInfo result = make_pair(get_env(require), get_paths(require));
     return result;
-
 }
 
 vector<string> ModuleManager::listPossiblePaths(Handle<Function> require, string name) {
@@ -140,8 +156,10 @@ Handle<Value> ModuleManager::getSoModule(v8::Handle<v8::Function> require, std::
     if(_loaded_modules.find(name) != _loaded_modules.end()) {
 	return _loaded_modules[name];
     }
+    return Object::New();
 
     //HandleScope hs;
+    std::string what;
 
     cerr << "ModuleManager::getSoModule(" << name << ")\n";
     vector<string> paths = listPossiblePaths(require, name);
@@ -151,8 +169,8 @@ Handle<Value> ModuleManager::getSoModule(v8::Handle<v8::Function> require, std::
 	    cerr << "got module (getSoModule)" << endl;
 	    //return hs.Close(res);
 	    return res;
-	} catch(const exception& e) {}
+	} catch(const FileNotFound& e) {}
     }
    
-    throw(FileNotFound("name"));
+    throw(FileNotFound(name));
 }

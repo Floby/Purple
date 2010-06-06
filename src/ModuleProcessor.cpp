@@ -38,6 +38,10 @@ PScript* ModuleProcessor::getScript() {
     return PScript::get(_filename); 
 }
 
+string ModuleProcessor::getCwd() {
+    return _filename.substr(0, _filename.find_last_of('/'));
+}
+
 int ModuleProcessor::returnValue(v8::Handle<v8::Value> jsReturnValue) {
     return 0;
 }

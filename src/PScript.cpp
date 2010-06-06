@@ -28,7 +28,7 @@ using namespace std;
 using namespace v8;
 
 
-PScript::PScript(string filename) : _compiled(false), _filename(filename) {
+PScript::PScript(string filename) : _filename(filename), _compiled(false) {
     _src = readFile(filename);
     _timestamp = 0;  //for now
 }

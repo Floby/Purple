@@ -38,15 +38,10 @@ void Processor::initializeContext() {
     _context = Context::New(NULL, global_template);
 } /* -----  end of method Processor::initializeContext  ----- */
 
-static Handle<Value> _envCallback(Local<String>, const v8::AccessorInfo& info) {
-    Handle<Object> env = Object::New();
-    env->Set(String::New("cwd"), String::New("/home/floby/www")); // TODO get the real directory
-    return env;
-}
 
 void Processor::initializeGlobalObjectTemplate(Handle<ObjectTemplate> gt) {
     gt->Set(String::New("require"), FunctionTemplate::New(requireCallback)); 
-    gt->SetAccessor(String::New("_env"), _envCallback); //ugly
+    //gt->SetAccessor(String::New("_env"), _envCallback); //ugly
 }
 
 void Processor::initializeGlobalObject(Handle<Object> g) {
@@ -54,6 +49,9 @@ void Processor::initializeGlobalObject(Handle<Object> g) {
     Handle<Object> paths = Array::New();
     paths->Set(0, String::New("/usr/lib/purple/modules")); //TODO: move this to config
     Handle<Object>::Cast(g->Get(String::New("require")))->Set(String::New("paths"), paths);
+    Handle<Object> env = Object::New();
+    env->Set(String::New("cwd"), String::New(getCwd().c_str())); 
+    g->Set(String::New("_env"), env);
 }
 
 Handle<Context> Processor::getContext() {
@@ -64,9 +62,6 @@ int Processor::process() {
     HandleScope handle_scope;
     //the process is the same for every kind of processor
 
-    // get the script
-    PScript* script = this->getScript();
-    _script = script;
 
     // create context
     // fill context with custom object
@@ -81,31 +76,41 @@ int Processor::process() {
     cerr << "initializing global object\n";
     initializeGlobalObject(_context->Global());
     
-    // compile the script
+    v8::TryCatch try_catch;
+    // get the script
+    PScript* script = this->getScript();
+    _script = script;
+    bool do_not_run = false;
+    if(try_catch.HasCaught()) {
+	Handle<Value> e = try_catch.Exception();
+	this->handleExceptions(e);
+	do_not_run = true;
+    }
+
     // execute the script (this doesn't need to be handled by subclasses)
     Handle<Value> jsvalue = script->getJsScript()->Run();
-    v8::TryCatch try_catch;
     // catch exceptions
-    if(jsvalue.IsEmpty()) {
+    if(jsvalue.IsEmpty() && try_catch.HasCaught()) {
 	Handle<Value> exception = try_catch.Exception();
-	String::Utf8Value str(exception);
-	cerr << "caught exception: " << *str << endl;
-	//this->handleExceptions(exception);
-	//ap_rprintf(_request, "Caught Exception: %s\n", *str);
+	this->handleExceptions(exception);
     }
     // determine the return value (integer)
     int result = this->returnValue(jsvalue);
     // clean up
     this->clean();
     // return value
-    //_context->Exit();
     return result;
 }
 
+void Processor::handleExceptions(Handle<Value> e) {
+    String::Utf8Value str(e);
+    cerr << "uncaught exception: " << *str << endl; 
+}
+
 Processor* Processor::retrieveInternalPointer() {
-    cerr << "retrieving internal pointer\n";
+    //cerr << "retrieving internal pointer\n";
     Handle<Object> proto = Handle<Object>::Cast(Context::GetCalling()->Global()->GetPrototype());
-    cerr << "internal fieldcount: " << proto->InternalFieldCount() << endl;
+    //cerr << "internal fieldcount: " << proto->InternalFieldCount() << endl;
     return (Processor*)Handle<Object>::Cast(Context::GetCalling()->Global()->GetPrototype())->GetPointerFromInternalField(0);
 }
 /*
@@ -125,10 +130,9 @@ std::string reachScript(std::string filename) {
     return res.str();
 }
 
-//void Processor::handleExceptions(Handle<Exception> e) {
-//}
 
 void Processor::clean() {
+    _context->Exit();
 }
 
 Processor::Processor() {
@@ -144,9 +148,10 @@ v8::Handle<v8::Value> Processor::requireCallback(const v8::Arguments& args) {
     cerr << "loading module " << arg << endl;
     try {
 	return  processor->getModule(arg);
-    } catch(const FileNotFound& e) {
+    } catch(const exception& e) {
 	cerr << arg << " could not be loaded\n";
-	return ThrowException(Exception::Error(String::New("file couldn't be located")));
+	cerr << e.what() << endl;
+	return ThrowException(Exception::Error(String::New(e.what())));
     }
 }
 
@@ -167,9 +172,10 @@ Handle<Value> Processor::getModule(const string& name) {
     try {
 	return getJsModule(name+".js");
     }
-    catch(const exception& e) {
+    catch(const FileNotFound& e) {
+	cerr << "trying " << name << ".so" << endl;
+	return getSoModule(name+".so");
 	try {
-	    cerr << "trying " << name << ".so" << endl;
 	    return getSoModule(name+".so");
 	}
 	catch(const exception& e) {

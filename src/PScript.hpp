@@ -30,16 +30,17 @@ namespace purple {
 
 	    v8::Handle<v8::Script> getJsScript();
 	    const std::string& getSource();
-	private:
+	protected:
 	    PScript(std::string filename);
 	    v8::Persistent<v8::Script> _script;
-	    bool _compiled;
+	    static std::string readFile(std::string filename);
 	    std::string _src;
 	    std::string _filename;
+	private:
+	    bool _compiled;
 	    int _timestamp;
 
 
-	    static std::string readFile(std::string filename);
     };
 };
 

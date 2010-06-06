@@ -39,6 +39,7 @@ static int mod_purple_method_handler(request_rec* r) {
     fprintf(stderr, "purple: %s was requested (mapped to %s), handled by %s\n", r->uri, r->filename, r->handler);
     fflush(stderr);
     if(std::string("purple") == r->handler) {
+	r->content_type = "text/html";
 	r->content_type = "text/plain";
 	try {
 	    PurpleInstance.process(r);

@@ -30,12 +30,33 @@ namespace purple {
 	    }
 	    virtual ~FileNotFound() throw() {
 	    }
+	    virtual const char* what() const throw() {
+		return (std::string("couldn't locate ") + _filename).c_str();
+	    }
 	    const std::string& file() {
 		return _filename;
 	    }
 	private:
 	    std::string _filename; 
     };
+    class ModuleLoadError :public std::exception {
+	public:
+	    ModuleLoadError(std::string filename, std::string error) : _filename(filename), _error(error) {
+	    }
+	    virtual ~ModuleLoadError() throw() {
+	    }
+	    const std::string& file() {
+		return _filename;
+	    }
+
+	    virtual const char* what() const throw(){
+		return _error.c_str();
+	    }
+	private:
+	    std::string _filename; 
+	    std::string _error;
+    };
+
 
     class CompilingError :public std::exception {
 	public:

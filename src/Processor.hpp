@@ -37,7 +37,8 @@ namespace purple {
 	    virtual void initializeGlobalObjectTemplate(v8::Handle<v8::ObjectTemplate>);
 	    virtual void initializeGlobalObject(v8::Handle<v8::Object>);
 	    virtual PScript* getScript() =0;
-	    //virtual void handleExceptions(v8::Handle<v8::Exception> e);
+	    virtual std::string getCwd() =0;
+	    virtual void handleExceptions(v8::Handle<v8::Value> e);
 	    virtual int returnValue(v8::Handle<v8::Value> jsReturnValue) =0;
 	    virtual void clean() ;
 
@@ -47,6 +48,7 @@ namespace purple {
 	    v8::Handle<v8::Value> getModule(const std::string& name);
 
 	    PScript* _script;
+
 	private:
 	    v8::Persistent<v8::Context> _context; 
 

@@ -35,13 +35,17 @@ namespace purple {
 	    virtual void initializeGlobalObjectTemplate(v8::Handle<v8::ObjectTemplate>);
 	    virtual void initializeGlobalObject(v8::Handle<v8::Object>);
 	    virtual PScript* getScript();
-	    //virtual void handleExcpetions(v8::Handle<v8::Exception> e);
+	    virtual std::string getCwd();
+	    virtual void handleExceptions(v8::Handle<v8::Value> e);
 	    virtual int returnValue(v8::Handle<v8::Value> jsReturnValue);
 	    virtual void clean();
 	private:
 	   request_rec* _request; 
 
 	   static v8::Handle<v8::Value> printCallback(const v8::Arguments& args);
+	   static v8::Handle<v8::Value> unwrapRequestHeaders(v8::Local<v8::String>, const v8::AccessorInfo& info);
+	   v8::Handle<v8::ObjectTemplate> getRequestObjectTemplate();
+	   v8::Handle<v8::ObjectTemplate> getHeadersInObjectTemplate();
     };
 };
 
