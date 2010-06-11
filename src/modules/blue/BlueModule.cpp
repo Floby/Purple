@@ -20,7 +20,7 @@
 #include	<v8/v8-debug.h>
 #include	<juice/ClassWrap.h>
 #include	"BlueModule.hpp"
-#include	"Blue.hpp"
+#include	"BlueProcessor.hpp"
 //#include	"bindings.hpp"
 
 using namespace purple;
@@ -33,7 +33,9 @@ BlueModule::BlueModule() {
 }
 
 Handle<Object> BlueModule::getJsModuleObject() {
-    Handle<Object> exports = Object::New();
+    Handle<Object> exports = BlueProcessor::getFunction();
+    //Handle<Object> exports = Object::New();
+    //exports->Set(String::New("chose"), String::New("bidule"));
 
     /*
     typedef v8::juice::cw::ClassWrap<Blue> CW;
@@ -65,6 +67,6 @@ Handle<Object> BlueModule::getJsModuleObject() {
     b.AddClassTo(exports);
      */
     //exports->Set(String::New("Blue"), b.CtorTemplate()->GetFunction());
-
+    cerr << exports->IsFunction() << endl;
     return exports;
 }

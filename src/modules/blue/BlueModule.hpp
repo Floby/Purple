@@ -20,7 +20,6 @@
 
 
 #include	<BinaryModule.hpp>
-#include	"Blue.hpp"
 
 namespace purple {
     class BlueModule :public BinaryModule {
